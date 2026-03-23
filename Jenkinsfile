@@ -90,30 +90,20 @@ volumes:
     post {
         success {
             withCredentials([string(credentialsId: 'slack-webhook', variable: 'SLACK_WEBHOOK')]) {
-                powershell '''
-                $body = @{
-                    text = "✅ Build SUCCESS : $env:JOB_NAME #$env:BUILD_NUMBER"
-                } | ConvertTo-Json
-
-                Invoke-RestMethod -Uri $env:SLACK_WEBHOOK `
-                -Method Post `
-                -Body $body `
-                -ContentType "application/json"
+                sh '''
+                curl -X POST -H "Content-type: application/json" \
+                --data "{\"text\":\"✅ Build SUCCESS : ${JOB_NAME} #${BUILD_NUMBER}\"}" \
+                "$SLACK_WEBHOOK"
                 '''
             }
         }
 
         failure {
             withCredentials([string(credentialsId: 'slack-webhook', variable: 'SLACK_WEBHOOK')]) {
-                powershell '''
-                $body = @{
-                    text = "❌ Build FAILED : $env:JOB_NAME #$env:BUILD_NUMBER"
-                } | ConvertTo-Json
-
-                Invoke-RestMethod -Uri $env:SLACK_WEBHOOK `
-                -Method Post `
-                -Body $body `
-                -ContentType "application/json"
+                sh '''
+                curl -X POST -H "Content-type: application/json" \
+                --data "{\"text\":\"❌ Build FAILED : ${JOB_NAME} #${BUILD_NUMBER}\"}" \
+                "$SLACK_WEBHOOK"
                 '''
             }
         }
