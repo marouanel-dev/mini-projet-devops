@@ -91,9 +91,8 @@ volumes:
         success {
             withCredentials([string(credentialsId: 'slack-webhook', variable: 'SLACK_WEBHOOK')]) {
                 sh '''
-                curl -X POST -H "Content-type: application/json" \
-                --data "{\"text\":\"✅ Build SUCCESS : ${JOB_NAME} #${BUILD_NUMBER}\"}" \
-                "$SLACK_WEBHOOK"
+                payload=$(printf '{"text":"✅ Build SUCCESS : %s #%s"}' "$JOB_NAME" "$BUILD_NUMBER")
+                curl -X POST -H 'Content-type: application/json' --data "$payload" "$SLACK_WEBHOOK"
                 '''
             }
         }
@@ -101,9 +100,8 @@ volumes:
         failure {
             withCredentials([string(credentialsId: 'slack-webhook', variable: 'SLACK_WEBHOOK')]) {
                 sh '''
-                curl -X POST -H "Content-type: application/json" \
-                --data "{\"text\":\"❌ Build FAILED : ${JOB_NAME} #${BUILD_NUMBER}\"}" \
-                "$SLACK_WEBHOOK"
+                payload=$(printf '{"text":"❌ Build FAILED : %s #%s"}' "$JOB_NAME" "$BUILD_NUMBER")
+                curl -X POST -H 'Content-type: application/json' --data "$payload" "$SLACK_WEBHOOK"
                 '''
             }
         }
