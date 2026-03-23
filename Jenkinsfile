@@ -2,6 +2,7 @@ pipeline {
     agent any
 
     stages {
+
         stage('SonarQube Scan') {
             steps {
                 sh '''
@@ -82,6 +83,38 @@ volumes:
                 sh 'docker-compose -f docker-compose.deploy.yml down || true'
                 sh 'docker-compose -f docker-compose.deploy.yml up -d'
                 sh 'docker ps'
+            }
+        }
+    }
+
+    post {
+        success {
+            withCredentials([string(credentialsId: 'slack-webhook', variable: 'SLACK_WEBHOOK')]) {
+                powershell '''
+                $body = @{
+                    text = "✅ Build SUCCESS : $env:JOB_NAME #$env:BUILD_NUMBER"
+                } | ConvertTo-Json
+
+                Invoke-RestMethod -Uri $env:SLACK_WEBHOOK `
+                -Method Post `
+                -Body $body `
+                -ContentType "application/json"
+                '''
+            }
+        }
+
+        failure {
+            withCredentials([string(credentialsId: 'slack-webhook', variable: 'SLACK_WEBHOOK')]) {
+                powershell '''
+                $body = @{
+                    text = "❌ Build FAILED : $env:JOB_NAME #$env:BUILD_NUMBER"
+                } | ConvertTo-Json
+
+                Invoke-RestMethod -Uri $env:SLACK_WEBHOOK `
+                -Method Post `
+                -Body $body `
+                -ContentType "application/json"
+                '''
             }
         }
     }
